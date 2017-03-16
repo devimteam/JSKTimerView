@@ -22,26 +22,11 @@
 
 #import <UIKit/UIKit.h>
 
-@class JSKTimerView;
-
 /**
- `JSKTimerViewDelegate` is a protocol which a `JSKTimerView` instance will use to call timerDidFinish when the timer has finished
- */
-@protocol JSKTimerViewDelegate <NSObject>
-
-/**
- This delegate method is called when the timer has naturally finished (i.e. timerProgress was not manually set to 0)
- */
-- (void)timerDidFinish:(JSKTimerView *)timerView;
-
-@end
-
-
-/**
- `JSKTimerView` is a custom UIView class which represents a simple, self-contained timer with different color states based on how close the timer is to finishing.
+ `JSKTimerView` is a custom UIView class which represents a simple, self-contained timer.
  */
 @interface JSKTimerView : UIView
-
+    
 /**
  The current timer progress with a range between 0 and 1
  */
@@ -60,15 +45,32 @@
 @property (readonly, nonatomic, getter=isFinished) BOOL finished;
 
 /**
- The text color of the UILabel with the time remaining
+ Executed when time ends
  */
-@property (nonatomic, strong) UIColor *labelTextColor;
+@property (nonatomic, copy) void (^completionBlock)() ;
+    
+///-----------------------------------------------------------
+/// @name Customization
+///-----------------------------------------------------------
 
 /**
- The delegate called when the timer has naturally finished
+ The text font of the UILabel with the time remaining
  */
-@property (nonatomic, weak) id<JSKTimerViewDelegate> delegate;
-
+@property (nonatomic, readwrite) UIFont *labelFont;
+    
+/**
+ The text color of the UILabel with the time remaining
+ */
+@property (nonatomic, readwrite) UIColor *labelTextColor;
+    
+/**
+ The text color of the progress background arc
+ */
+@property (nonatomic, strong) UIColor *progressBackgroundColor;
+/**
+ The text color of the progress arc
+ */
+@property (nonatomic, strong) UIColor *progressColor;
 
 ///-----------------------------------------------------------
 /// @name Timer Methods
