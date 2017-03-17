@@ -34,7 +34,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 @property (nonatomic, readwrite, getter=isRunning) BOOL running;
 @property (nonatomic, readwrite, getter=isFinished) BOOL finished;
 
-@property (nonatomic, assign) NSInteger elapsedTimeInSeconds;
+@property (nonatomic, assign) NSInteger remainingTimeInSeconds;
 @property (nonatomic, assign) NSInteger totalTimeInSeconds;
 @property (nonatomic, strong) NSTimer *viewTimer;
 
@@ -71,7 +71,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)initalSetup {
     
-    _elapsedTimeInSeconds = 0;
+    _remainingTimeInSeconds = 0;
     _totalTimeInSeconds = 0;
     
     _running = NO;
@@ -126,10 +126,10 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 #pragma mark - Timer methods
 
 - (void)setTimerWithDuration:(NSInteger)durationInSeconds {
-    self.elapsedTimeInSeconds = 0;
+    self.remainingTimeInSeconds = durationInSeconds;
     self.totalTimeInSeconds = durationInSeconds;
     
-    [self setProgress:0 animated:NO];
+    [self setProgress:1 animated:NO];
     [self updateLabelText];
     [self setNeedsDisplay];
 }
@@ -171,6 +171,8 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 }
 
 - (void)stopTimer {
+    self.remainingTimeInSeconds = 0;
+    
     [self pauseTimer];
     
     [self updateLabelText];
@@ -179,7 +181,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 }
 
 - (void)resetTimer {
-    self.elapsedTimeInSeconds = 0;
+    self.remainingTimeInSeconds = self.totalTimeInSeconds;
     
     [self pauseTimer];
     
@@ -190,14 +192,13 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)restartTimer {
     [self resetTimer];
-    
     [self startTimer];
 }
 
 #pragma mark - Accessors
 
 - (NSInteger)remainingDurationInSeconds {
-    return self.totalTimeInSeconds - self.elapsedTimeInSeconds;
+    return self.remainingTimeInSeconds;
 }
 
 - (NSInteger)totalDurationInSeconds {
@@ -211,7 +212,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
     progress = [self sanitizeProgressValue:progress];
     
     if (progress < 1) {
-        self.elapsedTimeInSeconds = (NSInteger)(self.totalTimeInSeconds * progress);
+        self.remainingTimeInSeconds = (NSInteger)(self.totalTimeInSeconds * progress);
         [self.progressLayer removeAnimationForKey:jsk_progressAnimationKey];
         
         [self setProgress:progress animated:NO];
@@ -224,7 +225,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
     
     progress = [self sanitizeProgressValue:progress];
     
-    if (progress < 1) {
+    if (progress > 0) {
         if (animated) {
             CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
             animation.fromValue = progress == 0 ? @0 : nil;
@@ -239,7 +240,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
             [CATransaction commit];
         }
     } else {
-        self.progressLayer.strokeEnd = 1;
+        self.progressLayer.strokeEnd = 0.0f;
         [self.progressLayer removeAnimationForKey:jsk_progressAnimationKey];
     }
     
@@ -260,7 +261,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 }
 
 - (void)tick:(id)sender {
-    if (self.elapsedTimeInSeconds >= self.totalTimeInSeconds) {
+    if (self.remainingTimeInSeconds <= 1) {
         [self stopTimer];
         
         self.finished = YES;
@@ -269,7 +270,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
             self.completionBlock();
         }
     } else {
-        self.elapsedTimeInSeconds += 1;
+        self.remainingTimeInSeconds -= 1;
         
         [self updateProgress];
     }
@@ -288,8 +289,8 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 - (CGFloat)sanitizeProgressValue:(CGFloat)progress {
     if (progress > 1) {
         progress = 1;
-    } else if (progress < kMinimalProgressValue) {
-        progress = kMinimalProgressValue;
+    } else if (progress < 0) {
+        progress = 0;
     }
     
     return progress;
@@ -298,7 +299,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 #pragma mark - NSObject
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@: (%ld of %ld sec elapsed)", [super description], (long)self.elapsedTimeInSeconds, (long)self.totalTimeInSeconds];
+    return [NSString stringWithFormat:@"%@: (%ld of %ld sec remaining)", [super description], (long)self.remainingTimeInSeconds, (long)self.totalTimeInSeconds];
 }
 
 #pragma mark - Private Create UI Methods
@@ -343,9 +344,9 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 #pragma mark - Private Update UI Methods
 
 - (void)updateLabelText {
-    NSInteger numHours = self.remainingDurationInSeconds / 3600;
-    NSInteger numMinutes = (self.remainingDurationInSeconds % 3600) / 60;
-    NSInteger numSeconds = self.remainingDurationInSeconds % 60;
+    NSInteger numHours = self.remainingTimeInSeconds / 3600;
+    NSInteger numMinutes = (self.remainingTimeInSeconds % 3600) / 60;
+    NSInteger numSeconds = self.remainingTimeInSeconds % 60;
     
     if (numHours > 0) {
         self.timerLabel.text = [NSString stringWithFormat:@"%02ld:%02ld:%02ld", (long)numHours, (long)numMinutes, (long)numSeconds];
@@ -355,7 +356,7 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 }
 
 - (void)updateProgress {
-    CGFloat progress = ((CGFloat)(self.elapsedTimeInSeconds) / self.totalTimeInSeconds);
+    CGFloat progress = ((CGFloat)(self.remainingTimeInSeconds) / self.totalTimeInSeconds);
     [self setProgress:progress animated:YES];
 }
 
