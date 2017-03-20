@@ -129,7 +129,10 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
     self.remainingTimeInSeconds = durationInSeconds;
     self.totalTimeInSeconds = durationInSeconds;
     
-    [self setProgress:1 animated:NO];
+    if (self.remainingTimeInSeconds > 0) {
+        [self setProgress:1 animated:NO];
+    }
+    
     [self updateLabelText];
     [self setNeedsDisplay];
 }
@@ -306,11 +309,9 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)createLabel {
     self.timerLabel = [[UILabel alloc] init];
-    self.timerLabel.text = @"0";
     self.timerLabel.textAlignment = NSTextAlignmentCenter;
-    [self.timerLabel sizeToFit];
     self.timerLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    
+    [self updateLabelText];
     [self addSubview:self.timerLabel];
     
     NSLayoutConstraint *centerXConstraint = [NSLayoutConstraint constraintWithItem:self.timerLabel attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0.0];
