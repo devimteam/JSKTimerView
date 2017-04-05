@@ -25,7 +25,6 @@
 
 static CGFloat const kBackgroundLineWidth = 5.0f;
 static CGFloat const kProgressLineWidth = 12.0f;
-static CGFloat const kMinimalProgressValue = 0.001f;
 static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
 
 
