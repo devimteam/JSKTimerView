@@ -83,29 +83,12 @@
  
  @warning This does *not* start the timer
  */
-- (void)setTimerWithDuration:(NSInteger)durationInSeconds;
+- (void)setTimerWithDuration:(NSInteger)durationInSeconds remainingTime:(NSInteger)remainingTime;
 
 /**
  Starts the timer.
  */
 - (void)startTimer;
-
-/**
- Starts the timer with the given duration in seconds.
- 
- @param durationInSeconds The number of seconds the timer is set for.
- */
-- (void)startTimerWithDuration:(NSInteger)durationInSeconds;
-
-
-/**
- Starts the timer with a given end date.
- 
- @param endDate The date the timer should end.
- 
- @return Returns true if the given date is in the future
- */
-- (BOOL)startTimerWithEndDate:(NSDate *)endDate;
 
 /**
  Pauses the timer.

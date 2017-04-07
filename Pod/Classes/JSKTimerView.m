@@ -124,12 +124,12 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
     
 #pragma mark - Timer methods
 
-- (void)setTimerWithDuration:(NSInteger)durationInSeconds {
-    self.remainingTimeInSeconds = durationInSeconds;
+- (void)setTimerWithDuration:(NSInteger)durationInSeconds remainingTime:(NSInteger)remainingTime {
+    self.remainingTimeInSeconds = remainingTime;
     self.totalTimeInSeconds = durationInSeconds;
     
     if (self.remainingTimeInSeconds > 0) {
-        [self setProgress:1 animated:NO];
+        [self setProgress:(CGFloat)remainingTime / durationInSeconds animated:NO];
     }
     
     [self updateLabelText];
@@ -141,29 +141,6 @@ static NSString * const jsk_progressAnimationKey = @"progressAnimationKey";
     
     self.running = YES;
     self.finished = NO;
-}
-
-- (void)startTimerWithDuration:(NSInteger)durationInSeconds {
-    [self setTimerWithDuration:durationInSeconds];
-    
-    [self startTimer];
-}
-
-- (BOOL)startTimerWithEndDate:(NSDate *)endDate {
-    NSDate *currentDate = [NSDate date];
-    
-    if ([currentDate compare:endDate] == NSOrderedAscending) {
-        NSTimeInterval timeInterval = [endDate timeIntervalSinceReferenceDate] - [currentDate timeIntervalSinceReferenceDate];
-        timeInterval = round(timeInterval);
-        
-        if (timeInterval > 1) {
-            [self startTimerWithDuration:timeInterval];
-            
-            return YES;
-        }
-    }
-    
-    return NO;
 }
 
 - (void)pauseTimer {
